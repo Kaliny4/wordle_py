@@ -78,18 +78,18 @@ def check_word(wordlist):
 
 def main():
     while True:
-        print(Back.WHITE + Fore.BLACK + "Start the game? (yes/no))" + Style.RESET_ALL)
-        input_from_user = input()
+        st.info(Back.WHITE + Fore.BLACK + "Start the game? (yes/no))" + Style.RESET_ALL)
+        input_from_user = st.text_input("Enter your choice: ")
         if input_from_user == "no":
             break
         elif input_from_user == "yes":
-            print("Enter your word: ")
+            st.info("Enter your word: ")
             check_word(wordlist)
 
         else:
-            print("Please enter yes or no")
+            st.warning("Please enter yes or no")
 
-    print("Thanks for playing!")
+    st.success("Thanks for playing!")
 
 
 if __name__ == "__main__":
