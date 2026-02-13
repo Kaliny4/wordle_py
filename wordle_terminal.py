@@ -5,13 +5,20 @@ import random
 
 with open("wordle_ord.txt", "r") as f:
     wordlist = [line.strip() for line in f]
-    
+
+
 def correct_place(letter):
     return Back.GREEN + letter + Back.RESET
+
+
 def correct_letter(letter):
     return Back.YELLOW + letter + Back.RESET
+
+
 def incorrect_letter(letter):
     return Style.DIM + letter + Back.RESET
+
+
 def compare(input_from_user, word):
     output = [""] * len(input_from_user)
     remaining_letters = list(word)
@@ -32,6 +39,8 @@ def compare(input_from_user, word):
         else:
             output[i] = incorrect_letter(letter)
     return "".join(output)
+
+
 def check_word(wordlist):
     word = random.choice(wordlist)
     attempts = 0
@@ -46,12 +55,15 @@ def check_word(wordlist):
         elif user_word == word:
             print(Back.WHITE + Fore.RED + "Congrats! the word was:" + word)
             exit()
+            
         else:
+            attempts += 1
             print(compare(user_word, word))
-            print("Try again. Attempts left: ", max_attempts - attempts - 1)
-        attempts += 1
+            print("Try again. Attempts left: ", max_attempts - attempts)
+        
     print("You reached max attempts. The word was:", word)
     exit()
+
 
 def main():
     while True:
@@ -65,6 +77,7 @@ def main():
         else:
             print("Please enter yes or no")
     print("Thanks for playing!")
+
 
 if __name__ == "__main__":
     main()

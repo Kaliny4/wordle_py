@@ -22,11 +22,11 @@ try:
     BASE_PATH = Path(sys._MEIPASS)
 except AttributeError:
     BASE_PATH = Path(".")
-       
+
 WORDLIST = BASE_PATH / "wordle_ord.txt"
 
-with open(WORDLIST, 'r') as f:
-        WORD = set(word.strip().lower() for word in f)
+with open(WORDLIST, "r") as f:
+    WORD = set(word.strip().lower() for word in f)
 
 
 class MainScreen(tk.Frame):
@@ -70,8 +70,8 @@ class MainScreen(tk.Frame):
         self.game_over_dialog.place(relx=0.5, rely=0.5, anchor="center")
 
     def init_ui(self):
-        
-        # ==> top bar ==>
+
+        # top bar
         container = tk.Frame(self, bg=COLOR_BLANK, height=40)
         container.grid(sticky="we")
         container.grid_columnconfigure(1, weight=1)
@@ -85,8 +85,16 @@ class MainScreen(tk.Frame):
             font=("Helvetica Neue", 28, "bold"),
         ).grid(row=0, column=1)
 
+        # rules
+        tk.Label(
+            container,
+            text="Six attempts to guess a 5-letter word. Guidance is by using color-coded feedback.\n Green means correct letter in the correct position, yellow means correct letter in the wrong position, and gray means incorrect letter. Good luck!",
+            fg="#d7dadc",
+            bg=COLOR_BLANK,
+            font=("Helvetica Neue", 10),
+        ).grid(row=1, column=1)
 
-        # top 
+        # top
         ttk.Separator(self).grid(sticky="ew")
         self.top_separator = tk.Frame(self, bg=COLOR_BLANK, height=45)
         self.top_separator.grid_rowconfigure(0, weight=1)
@@ -99,7 +107,7 @@ class MainScreen(tk.Frame):
 
         container = tk.Frame(self, bg=COLOR_BLANK)
         container.grid()
-        
+
         self.labels = []
         for i in range(MAX_TRIES):
             row = []
@@ -128,11 +136,11 @@ class MainScreen(tk.Frame):
                 t.grid(sticky="news")
                 row.append(t)
             self.labels.append(row)
-       
+
         # bottom
         tk.Frame(self, bg=COLOR_BLANK, height=45).grid()
 
-        # ==> virtual keyboard ==>
+        #  keyboard
         container = tk.Frame(self, bg=COLOR_BLANK)
         container.grid()
 
@@ -143,7 +151,7 @@ class MainScreen(tk.Frame):
             row.grid(row=i, column=0)
 
             for j, c in enumerate(keys):
-                if i == 2:  
+                if i == 2:
                     j += 1
 
                 cell = tk.Frame(
@@ -198,8 +206,8 @@ class MainScreen(tk.Frame):
             )
             btn.grid(row=0, column=0, sticky="news")
 
-        # game over dialog 
-        
+        # game over dialog
+
         self.game_over_dialog = tk.Frame(self, bg=COLOR_INCORRECT, highlightthickness=2)
 
         # title text
@@ -249,10 +257,10 @@ class MainScreen(tk.Frame):
             btn.grid(row=0, column=col, sticky="ew")
 
         ttk.Separator(f, orient="vertical").grid(row=0, column=1, sticky="ns")
-        # <== game over dialog <==
 
+    #  game over dialog
     def toast(self, message, duration=2):
-        
+
         t = tk.Label(self.top_separator, text=message, font=("Helvetica Neue", 16))
         t.grid(row=0, column=0, sticky="news", padx=5, pady=5)
         self.master.after(duration * 1000, lambda: t.grid_remove())
@@ -287,60 +295,61 @@ class MainScreen(tk.Frame):
                 )
 
     def check_word(self, event=None):
-        
+
         word = self.words[self.current_word].lower()
         if len(word) < WORD_LEN or word not in WORD or not word.isalpha():
             self.toast("Please enter a 5 letter valid word")
             return
-        
+
         colors = [COLOR_BLANK] * WORD_LEN
-        answer_chars = list(self.answer)
-        
-          # First pass: mark correct positions (green)
-        for i in range(WORD_LEN):
-            if word[i] == self.answer[i]:
+        answer_letters = list(self.answer)
+
+        # First pass: mark correct positions (green)
+        for i, letter in enumerate(word):
+            if letter == self.answer[i]:
                 colors[i] = COLOR_CORRECT
-                self.correct_letters.add(word[i].upper())
-                answer_chars[i] = None  # Mark as used
-        
+                self.correct_letters.add(letter.upper())
+                answer_letters[i] = None
+
         # Second pass: mark present letters (yellow)
-        for i in range(WORD_LEN):
-            if colors[i] == COLOR_CORRECT:  # Already marked as correct
+        for i, letter in enumerate(word):
+            if colors[i] == COLOR_CORRECT:
                 continue
-            
-            if word[i] in answer_chars:
+
+            if letter in answer_letters:
                 colors[i] = COLOR_HALF_CORRECT
-                self.half_correct_letters.add(word[i].upper())
-                answer_chars[answer_chars.index(word[i])] = None  # Mark as used
+                self.half_correct_letters.add(letter.upper())
+                answer_letters[answer_letters.index(letter)] = None
             else:
                 colors[i] = COLOR_INCORRECT
-                self.incorrect_letters.add(word[i].upper())
-        
-        # Update display
+                self.incorrect_letters.add(letter.upper())
+
+        # update display
         self.use_word = self.current_word
         self.update_labels(colors)
         self.update_keyboard()
 
-        # Check win/lose conditions
+        # check win/lose conditions
         self.current_word += 1
         if word == self.answer:
             self.congratulate()
         elif self.current_word >= MAX_TRIES:
             self.humiliate()
+        else:
+            toast_message = f"Try again. Attempts left: {MAX_TRIES - self.current_word}"
+            self.toast(toast_message)
 
     def remove_letter(self, event=None):
-        """Remove the last letter"""
+
         if self.words[self.current_word]:
             self.words[self.current_word] = self.words[self.current_word][:-1]
             self.use_word = self.current_word
             self.update_labels()
 
     def enter_letter(self, event=None, key=None):
-        """Enter a letter"""
-        key = key or event.keysym
-        key = key.upper()
-        
-        if key in string.ascii_uppercase and len(self.words[self.current_word]) < WORD_LEN:
+
+        key = key or event.keysym.upper()
+        if key in string.ascii_uppercase:
             self.words[self.current_word] += key
             self.use_word = self.current_word
             self.update_labels()
@@ -350,10 +359,10 @@ class WordleApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.title("Wordle - A Word Game")
-        self.geometry("600x800")  # FIXED: Changed from state("zoomed") which might not work on all systems
-        
-        # Container
+        self.title("Wordle-Shmordle")
+        self.geometry("600x800")
+
+        # container
         container = tk.Frame(self, bg=COLOR_BLANK)
         container.grid(sticky="news")
         self.grid_rowconfigure(0, weight=1)
@@ -361,122 +370,32 @@ class WordleApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        # Create main screen
+        # create main screen
         self.frames = {}
         self.frames["MainScreen"] = MainScreen(
-            master=container, controller=self, bg=COLOR_BLANK)
+            master=container, controller=self, bg=COLOR_BLANK
+        )
         self.frames["MainScreen"].grid(row=0, column=0, sticky="ns")
-
-        # Show the main screen
-        self.show_frame("MainScreen")
-
-        # Fullscreen toggle
-        self.fullscreen = False
-        self.bind("<F11>", self.fullscreen_toggle)
-
-    def show_frame(self, page_name):
-        """Show a specific frame"""
-        frame = self.frames[page_name]
-        frame.focus_set()
-        frame.tkraise()
-
-    def fullscreen_toggle(self, event=None):
-        """Toggle fullscreen mode"""
-        self.fullscreen = not self.fullscreen
-        self.wm_attributes("-fullscreen", self.fullscreen)
-
-
-# FIXED: MAIN ENTRY POINT WAS MISSING!
-if __name__ == "__main__":
-    app = WordleApp()
-    app.mainloop()
-"""
-        for x, y in zip(word, self.answer):
-            if x == y:
-                colors.append(COLOR_CORRECT)
-                self.correct_letters.add(x)
-            elif freq.get(x, 0) > 0:
-                colors.append(COLOR_HALF_CORRECT)
-                self.half_correct_letter.add(x)
-                freq[x] -= 1
-            else:
-                self.incorrect_letters.add(x)
-                colors.append(COLOR_INCORRECT)
-        self.update_labels(colors)
-        self.update_keyboard()
-
-        self.current_word += 1
-        if word == self.answer:
-            self.congratulate()
-        elif self.current_word >= MAX_TRIES:
-            self.humiliate()
-
-    def remove_letter(self, event=None):
-        if self.answers[self.current_word]:
-            print(self.answers[self.current_word][-1], "was deleted.")
-            self.answers[self.current_word] = self.answers[self.current_word][:-1]
-            self.update_labels()
-
-    def enter_letter(self, event=None, key=None):
-        key = key or event.keysym.upper()
-        if key in string.ascii_uppercase:
-            print(key, "was entered.")
-            self.answers[self.current_word] += key
-            
-            self.answers[self.current_word] = self.answers[self.current_word][:WORD_LEN]
-            self.update_labels()
-
-
-class WordleApp(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-
-        self.title("Wordle - A Word Game")
-        self.state("zoomed")
-        # self.resizable(False, False)
-        self.app_icon = tk.PhotoImage(file=APP_ICON)
-        self.iconphoto(False, self.app_icon)
-
-        
-        container = tk.Frame(self, bg=COLOR_BLANK)
-        container.grid(sticky="news")
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-
-        self.frames = {}
-        self.frames["MainScreen"] = MainScreen(
-            master=container, controller=self, bg=COLOR_BLANK)
-       
-        self.frames["MainScreen"].grid(row=0, column=0, sticky="ns")
-        
 
         # show the main screen
         self.show_frame("MainScreen")
 
+        # fullscreen toggle
         self.fullscreen = False
         self.bind("<F11>", self.fullscreen_toggle)
 
     def show_frame(self, page_name):
-        
+
         frame = self.frames[page_name]
-        
         frame.focus_set()
-       
         frame.tkraise()
 
     def fullscreen_toggle(self, event=None):
-       
-        if self.fullscreen:
-            self.wm_attributes("-fullscreen", False)
-            self.fullscreen = False
-        else:
-            self.wm_attributes("-fullscreen", True)
-            self.fullscreen = True
+
+        self.fullscreen = not self.fullscreen
+        self.wm_attributes("-fullscreen", self.fullscreen)
 
 
 if __name__ == "__main__":
     app = WordleApp()
     app.mainloop()
-"""
