@@ -61,12 +61,12 @@ class MainScreen(tk.Frame):
 
     def congratulate(self):
         self.game_over_dialog_title.set("Congrats!")
-        self.game_over_dialog_message.set(f"You guessed the word {self.answer.upper()}")
+        self.game_over_dialog_message.set(f"You guessed the word {self.answer.upper()}. Play again?")
         self.game_over_dialog.place(relx=0.5, rely=0.5, anchor="center")
 
     def humiliate(self):
         self.game_over_dialog_title.set("Max attemts reached")
-        self.game_over_dialog_message.set(f"The word was {self.answer.upper()}")
+        self.game_over_dialog_message.set(f"The word was {self.answer.upper()}. Play again?")
         self.game_over_dialog.place(relx=0.5, rely=0.5, anchor="center")
 
     def init_ui(self):
