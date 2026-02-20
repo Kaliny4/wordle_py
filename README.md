@@ -51,5 +51,9 @@ python wordle_tkinter.py
 ### Reflection
 - Writing tests is significantly harder when all logic is placed in one file
 - The project would benefit from refactoring into smaller modules
-- Future improvement: containerization with Docker
+
+### In Progress
+- containerization with Docker
+- wordle in C++
+- infromation theory and wordle, how to estimate the word  
 
